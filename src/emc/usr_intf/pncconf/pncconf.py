@@ -1269,7 +1269,7 @@ Choosing no will mean AXIS options such as size/position and force maximum might
                 if gpionumber or ptype in(_PD.GPIOI,_PD.GPIOO,_PD.GPIOD):
                     comptype = "gpio"
                     if '5i25' in boardname:
-                        compnum = int(pinnum)+(concount*16)
+                        compnum = int(pinnum)+(concount*17)
                     else:
                         compnum = int(pinnum)+(concount*24)
                     return "hm2_%s.%d."% (boardname,halboardnum) + comptype+".%03d"% (compnum)          
@@ -3308,7 +3308,7 @@ Clicking 'existing custom program' will aviod this warning. "),False):
                             else:
                                 self.widgets[complabel].set_text("%02d:"%(concount*24+pin-24)) #sserial output
                     elif '5i25' in currentboard:
-                         self.widgets[complabel].set_text("%03d:"%(concount*16+pin))# 5i25 mainboard GPIO
+                         self.widgets[complabel].set_text("%03d:"%(concount*17+pin))# 5i25 mainboard GPIO
                     else:
                          self.widgets[complabel].set_text("%03d:"%(concount*24+pin))# mainboard GPIO
                     if compnum == 100 and widgettext == firmptype:
