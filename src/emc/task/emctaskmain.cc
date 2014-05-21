@@ -1791,7 +1791,7 @@ static int emcTaskIssueCommand(NMLmsg * cmd)
         retval = emcTrajLinearMove(emcTrajLinearMoveMsg->end,
                                    emcTrajLinearMoveMsg->type, emcTrajLinearMoveMsg->vel,
                                    emcTrajLinearMoveMsg->ini_maxvel, emcTrajLinearMoveMsg->acc,
-                                   emcTrajLinearMoveMsg->indexrotary);
+                                   emcTrajLinearMoveMsg->ini_maxjerk, emcTrajLinearMoveMsg->indexrotary);
 	break;
 
     case EMC_TRAJ_CIRCULAR_MOVE_TYPE:
@@ -1866,9 +1866,10 @@ static int emcTaskIssueCommand(NMLmsg * cmd)
 	    ((EMC_TRAJ_PROBE *) cmd)->pos, 
 	    ((EMC_TRAJ_PROBE *) cmd)->type,
 	    ((EMC_TRAJ_PROBE *) cmd)->vel,
-            ((EMC_TRAJ_PROBE *) cmd)->ini_maxvel,  
+        ((EMC_TRAJ_PROBE *) cmd)->ini_maxvel,  
 	    ((EMC_TRAJ_PROBE *) cmd)->acc,
-            ((EMC_TRAJ_PROBE *) cmd)->probe_type);
+	    ((EMC_TRAJ_PROBE *) cmd)->ini_maxjerk,
+        ((EMC_TRAJ_PROBE *) cmd)->probe_type);
 	break;
 
     case EMC_AUX_INPUT_WAIT_TYPE:

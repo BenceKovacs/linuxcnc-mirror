@@ -311,6 +311,39 @@ int emcAxisSetMaxAcceleration(int axis, double acc)
     return usrmotWriteEmcmotCommand(&emcmotCommand);
 }
 
+int emcAxisSetMaxJerk(int axis, double jerk)
+{
+
+    if (axis < 0 || axis >= EMCMOT_MAX_AXIS) {
+        return 0;
+    }
+    if (jerk < 0.0) {
+        jerk = 0.0;
+    }
+
+    axis_max_jerk[axis] = jerk;
+    //FIXME-AJ: need to see if we want to send these to motion
+    // disabled for now
+    //FIXME-eric: since AJ decide not to config motion for now , I will also disable jerk config for now
+#if 0
+    //TODO-eric: modify if we want to do jerk setting
+    emcmotCommand.command = EMCMOT_SET_JOINT_ACC_LIMIT;
+    emcmotCommand.joint = joint;
+    emcmotCommand.acc = acc;
+    return usrmotWriteEmcmotCommand(&emcmotCommand);
+#endif
+
+    return 0;
+}
+
+double emcAxisGetMaxJerk(int axis) {
+    if (axis < 0 || axis >= EMCMOT_MAX_AXIS) {
+        return 0;
+    }
+
+    return axis_max_jerk[axis];
+}
+
 /* This function checks to see if any axis or the traj has
    been inited already.  At startup, if none have been inited,
    usrmotIniLoad and usrmotInit must be called first.  At
@@ -976,7 +1009,7 @@ int emcTrajSetTermCond(int cond, double tolerance)
     return usrmotWriteEmcmotCommand(&emcmotCommand);
 }
 
-int emcTrajLinearMove(EmcPose end, int type, double vel, double ini_maxvel, double acc,
+int emcTrajLinearMove(EmcPose end, int type, double vel, double ini_maxvel, double acc, double ini_maxjerk,
                       int indexrotary)
 {
 #ifdef ISNAN_TRAP
@@ -997,6 +1030,7 @@ int emcTrajLinearMove(EmcPose end, int type, double vel, double ini_maxvel, doub
     emcmotCommand.vel = vel;
     emcmotCommand.ini_maxvel = ini_maxvel;
     emcmotCommand.acc = acc;
+    emcmotCommand.ini_maxjerk = ini_maxjerk;
     emcmotCommand.turn = indexrotary;
 
     return usrmotWriteEmcmotCommand(&emcmotCommand);
@@ -1046,7 +1080,7 @@ int emcTrajClearProbeTrippedFlag()
     return usrmotWriteEmcmotCommand(&emcmotCommand);
 }
 
-int emcTrajProbe(EmcPose pos, int type, double vel, double ini_maxvel, double acc, unsigned char probe_type)
+int emcTrajProbe(EmcPose pos, int type, double vel, double ini_maxvel, double acc, double ini_maxjerk, unsigned char probe_type)
 {
 #ifdef ISNAN_TRAP
     if (isnan(pos.tran.x) || isnan(pos.tran.y) || isnan(pos.tran.z) ||
@@ -1064,6 +1098,7 @@ int emcTrajProbe(EmcPose pos, int type, double vel, double ini_maxvel, double ac
     emcmotCommand.vel = vel;
     emcmotCommand.ini_maxvel = ini_maxvel;
     emcmotCommand.acc = acc;
+    emcmotCommand.ini_maxjerk = ini_maxjerk;
     emcmotCommand.probe_type = probe_type;
 
     return usrmotWriteEmcmotCommand(&emcmotCommand);

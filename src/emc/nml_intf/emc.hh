@@ -387,6 +387,8 @@ extern int emcAxisSetHomingParams(int axis, double home, double offset, double h
 				  int is_shared, int home_sequence, int volatile_home, int locking_indexer);
 extern int emcAxisSetMaxVelocity(int axis, double vel);
 extern int emcAxisSetMaxAcceleration(int axis, double acc);
+extern int emcAxisSetMaxJerk(int axis, double jerk);
+extern double emcAxisGetMaxJerk(int axis);
 
 extern int emcAxisInit(int axis);
 extern int emcAxisHalt(int axis);
@@ -437,7 +439,7 @@ extern int emcTrajStep();
 extern int emcTrajResume();
 extern int emcTrajDelay(double delay);
 extern int emcTrajLinearMove(EmcPose end, int type, double vel,
-                             double ini_maxvel, double acc, int indexrotary);
+                             double ini_maxvel, double acc, double ini_maxjerk, int indexrotary);
 extern int emcTrajCircularMove(EmcPose end, PM_CARTESIAN center, PM_CARTESIAN
         normal, int turn, int type, double vel, double ini_maxvel, double acc);
 extern int emcTrajSetTermCond(int cond, double tolerance);
@@ -448,7 +450,7 @@ extern int emcTrajSetRotation(double rotation);
 extern int emcTrajSetHome(EmcPose home);
 extern int emcTrajClearProbeTrippedFlag();
 extern int emcTrajProbe(EmcPose pos, int type, double vel, 
-                        double ini_maxvel, double acc, unsigned char probe_type);
+                        double ini_maxvel, double acc, double ini_maxjerk, unsigned char probe_type);
 extern int emcAuxInputWait(int index, int input_type, int wait_type, int timeout);
 extern int emcTrajRigidTap(EmcPose pos, double vel, double ini_maxvel, double acc);
 

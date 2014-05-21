@@ -559,6 +559,90 @@ void SET_FEED_REFERENCE(CANON_FEED_REFERENCE reference)
     // nothing need be done here
 }
 
+double getStraightJerk(double x, double y, double z,
+                               double a, double b, double c,
+                               double u, double v, double w)
+{
+    double dx, dy, dz, du, dv, dw, da, db, dc;
+    double  jerk;
+
+    jerk = 0.0; // if a move to nowhere
+
+    // Compute absolute travel distance for each axis:
+    dx = fabs(x - canonEndPoint.x);
+    dy = fabs(y - canonEndPoint.y);
+    dz = fabs(z - canonEndPoint.z);
+    da = fabs(a - canonEndPoint.a);
+    db = fabs(b - canonEndPoint.b);
+    dc = fabs(c - canonEndPoint.c);
+    du = fabs(u - canonEndPoint.u);
+    dv = fabs(v - canonEndPoint.v);
+    dw = fabs(w - canonEndPoint.w);
+
+    if(!axis_valid(0) || dx < tiny) dx = 0.0;
+    if(!axis_valid(1) || dy < tiny) dy = 0.0;
+    if(!axis_valid(2) || dz < tiny) dz = 0.0;
+    if(!axis_valid(3) || da < tiny) da = 0.0;
+    if(!axis_valid(4) || db < tiny) db = 0.0;
+    if(!axis_valid(5) || dc < tiny) dc = 0.0;
+    if(!axis_valid(6) || du < tiny) du = 0.0;
+    if(!axis_valid(7) || dv < tiny) dv = 0.0;
+    if(!axis_valid(8) || dw < tiny) dw = 0.0;
+
+    if(debug_velacc)
+        printf("getStraightAcceleration dx %g dy %g dz %g da %g db %g dc %g du %g dv %g dw %g ",
+               dx, dy, dz, da, db, dc, du, dv, dw);
+
+    // Figure out what kind of move we're making.  This is used to determine
+    // the units of vel/acc.
+    if (dx <= 0.0 && dy <= 0.0 && dz <= 0.0 &&
+        du <= 0.0 && dv <= 0.0 && dw <= 0.0) {
+        cartesian_move = 0;
+    } else {
+        cartesian_move = 1;
+    }
+    if (da <= 0.0 && db <= 0.0 && dc <= 0.0) {
+        angular_move = 0;
+    } else {
+        angular_move = 1;
+    }
+
+    // Pure linear move:
+    if (cartesian_move && !angular_move) {
+
+        jerk = MAX3((dx?emcAxisGetMaxJerk(0): 0.0),
+                    (dy?emcAxisGetMaxJerk(1): 0.0),
+                    (dz?emcAxisGetMaxJerk(2): 0.0));
+        jerk = FROM_EXT_LEN(MAX4((jerk),
+                        (da?emcAxisGetMaxJerk(6): 0.0),
+                        (db?emcAxisGetMaxJerk(7): 0.0),
+                        (dc?emcAxisGetMaxJerk(8): 0.0)));
+    }
+    // Pure angular move:
+    else if (!cartesian_move && angular_move) {
+
+        jerk = FROM_EXT_LEN(MAX3(
+                    (du?emcAxisGetMaxJerk(3): 0.0),
+                    (dv?emcAxisGetMaxJerk(4): 0.0),
+                    (dw?emcAxisGetMaxJerk(5): 0.0)));
+    }
+    // Combination angular and linear move:
+    else if (cartesian_move && angular_move) {
+
+        jerk = FROM_EXT_LEN(MAX9(
+                (dx?emcAxisGetMaxJerk(0): 0.0),
+                (dy?emcAxisGetMaxJerk(1): 0.0),
+                (dz?emcAxisGetMaxJerk(2): 0.0),
+                (du?emcAxisGetMaxJerk(3): 0.0),
+                (dv?emcAxisGetMaxJerk(4): 0.0),
+                (dw?emcAxisGetMaxJerk(5): 0.0),
+                (da?emcAxisGetMaxJerk(6): 0.0),
+                (db?emcAxisGetMaxJerk(7): 0.0),
+                (dc?emcAxisGetMaxJerk(8): 0.0)));
+    }
+    return jerk;
+}
+
 double getStraightAcceleration(double x, double y, double z,
                                double a, double b, double c,
                                double u, double v, double w)
@@ -860,6 +944,7 @@ static void flush_segments(void) {
 
     linearMoveMsg.vel = toExtVel(vel);
     linearMoveMsg.ini_maxvel = toExtVel(ini_maxvel);
+    linearMoveMsg.ini_maxjerk = TO_EXT_LEN(getStraightJerk(x, y, z, a, b, c, u, v, w));
     double acc = getStraightAcceleration(x, y, z, a, b, c, u, v, w);
     linearMoveMsg.acc = toExtAcc(acc);
 
@@ -1082,6 +1167,7 @@ void STRAIGHT_PROBE(int line_number,
     probeMsg.vel = toExtVel(vel);
     probeMsg.ini_maxvel = toExtVel(ini_maxvel);
     probeMsg.acc = toExtAcc(acc);
+    probeMsg.ini_maxjerk = TO_EXT_LEN(getStraightJerk(x, y, z, a, b, c, u, v, w));
 
     probeMsg.type = EMC_MOTION_TYPE_PROBING;
     probeMsg.probe_type = probe_type;
